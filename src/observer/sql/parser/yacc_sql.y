@@ -57,7 +57,9 @@ ParserContext *get_context(yyscan_t scanner)
 %}
 
 %define api.pure full
+// yylex 参数
 %lex-param { yyscan_t scanner }
+// yyparse 参数
 %parse-param { void *scanner }
 
 //标识tokens
@@ -356,11 +358,19 @@ select:				/*  select 语句的语法解析树*/
 select_attr:
     STAR {  
 			RelAttr attr;
+			printf("start\n");
+			relation_attr_init(&attr, NULL, "*");
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+		}
+	| STAR attr_list {
+			RelAttr attr;
+			printf("start attr_list, %s\n", $1);
 			relation_attr_init(&attr, NULL, "*");
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
     | ID attr_list {
 			RelAttr attr;
+			printf("id attr_list %s\n", $1);
 			relation_attr_init(&attr, NULL, $1);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
@@ -576,7 +586,7 @@ extern void scan_string(const char *str, yyscan_t scanner);
 int sql_parse(const char *s, Query *sqls){
 	ParserContext context;
 	memset(&context, 0, sizeof(context));
-
+	printf("%s\n", s);
 	yyscan_t scanner;
 	yylex_init_extra(&context, &scanner);
 	context.ssql = sqls;
